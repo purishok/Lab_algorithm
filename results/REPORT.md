@@ -1,67 +1,71 @@
-# V4 benchmark results
+# Python V4 and S5 benchmark report
 
-Variant: V4, ratio 50:100:100. Each row averages five independent 10 second runs. The operation tape contains 25,000 randomly shuffled, preselected operations and repeats cyclically. Student emails and destination groups are chosen from existing values before timing. The initial index build and the final validation are outside the timed interval.
+Assigned variant: V4, operation ratio 50:100:100, S5 group sort. Implementation uses Python's standard library.
 
-| Students | Groups | Singleton share | Operations / 10 s, mean ± SD | Op 1 ns, mean ± SD | Op 2 ns, mean ± SD | Op 3 ns, mean ± SD | Slowest | Predicted T(n), ns | Estimated bytes |
+Environment: Python 3.14.8, Darwin arm64.
+
+## Task I: three approaches on 100,000 students
+
+All approaches received the same precomputed 25,000-operation tape. Each shuffled 250-operation block contains exactly 50, 100, and 100 operations of types 1, 2, and 3. Emails and destination groups exist in the source. Setup and validation are outside timing. Final blocks can make elapsed time slightly exceed 10 seconds; normalized throughput accounts for that.
+
+| Approach | Containers | Observed operations | Elapsed s | Operations / 10 s |
+|---|---|---:|---:|---:|
+| vector_scan | list, temporary group dict | 1,632 | 10.187 | 1,602 |
+| aggregate_map | email dict, group aggregate dict | 7,168 | 10.022 | 7,152 |
+| ranked_index | email/group dicts, tie sets, bounded max heaps | 9,874,560 | 10.000 | 9,874,532 |
+
+**Winner: `ranked_index`.** List scanning costs O(n) for each operation. The aggregate map changes groups in expected O(1) and scans g groups for maximum queries. The ranked index uses dictionaries, exact `Fraction` average keys, tie sets, and bounded lazy heaps; updates are expected O(log g) amortized and returning k winning groups costs O(k) amortized. Maximum queries are 60% of this workload.
+
+## Winner across ten database sizes
+
+Five independent 10-second runs were made at each size. The operation tape was prepared before each run and reused cyclically. The initial database build and final validation are excluded. Operation latency is sampled every 128 executions of each type; stopwatch overhead and scheduling add noise.
+
+| Students | Groups | Singleton share | Operations / 10 s, mean ± SD | Op 1 ns, mean ± SD | Op 2 ns, mean ± SD | Op 3 ns, mean ± SD | Slowest at n | Predicted op 2 ns | Estimated bytes |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 100 | 100 | 100.0% | 47,767,962 ± 339,107 | 75.6 ± 2.2 | 460.2 ± 5.6 | 36.4 ± 3.0 | 2 | 352.1 | 61,680 |
-| 250 | 241 | 92.8% | 41,790,669 ± 238,659 | 74.5 ± 5.1 | 538.9 ± 3.1 | 34.4 ± 0.7 | 2 | 562.3 | 151,318 |
-| 500 | 466 | 86.4% | 37,099,725 ± 168,552 | 75.9 ± 5.4 | 609.3 ± 3.5 | 33.7 ± 0.3 | 2 | 710.2 | 298,664 |
-| 1,000 | 871 | 75.4% | 32,206,234 ± 194,784 | 80.7 ± 2.5 | 699.5 ± 7.7 | 33.5 ± 0.6 | 2 | 817.4 | 582,896 |
-| 2,500 | 1,802 | 50.1% | 27,219,354 ± 143,260 | 73.3 ± 7.5 | 847.5 ± 9.2 | 32.5 ± 0.4 | 2 | 849.4 | 1,361,346 |
-| 5,000 | 2,735 | 26.8% | 25,862,554 ± 233,513 | 80.2 ± 10.0 | 893.1 ± 21.3 | 32.9 ± 0.5 | 2 | 761.7 | 2,488,978 |
-| 10,000 | 3,566 | 8.8% | 31,324,365 ± 434,104 | 69.9 ± 9.8 | 740.0 ± 24.9 | 32.4 ± 0.8 | 2 | 608.1 | 4,520,756 |
-| 25,000 | 3,978 | 0.5% | 53,142,528 ± 1,884,999 | 55.9 ± 28.6 | 422.3 ± 15.6 | 31.2 ± 1.1 | 2 | 408.6 | 10,047,052 |
-| 50,000 | 3,999 | 0.0% | 81,925,325 ± 2,955,164 | 40.2 ± 10.8 | 273.8 ± 18.6 | 30.9 ± 0.4 | 2 | 321.4 | 19,144,630 |
-| 100,000 | 3,999 | 0.0% | 108,208,538 ± 6,692,897 | 75.7 ± 22.5 | 183.5 ± 7.5 | 31.6 ± 1.0 | 2 | 276.9 | 37,345,958 |
+| 100 | 100 | 100.0% | 3,959,219 ± 46,625 | 262.6 ± 7.7 | 4867.1 ± 52.4 | 1230.7 ± 48.2 | 2 | 4448.9 | 119,343 |
+| 250 | 241 | 92.8% | 3,805,242 ± 124,737 | 259.9 ± 13.9 | 5154.6 ± 188.1 | 1195.9 ± 29.4 | 2 | 5172.4 | 273,539 |
+| 500 | 466 | 86.4% | 3,717,338 ± 125,025 | 258.5 ± 12.4 | 5210.6 ± 179.3 | 1171.4 ± 45.1 | 2 | 5652.8 | 554,999 |
+| 1,000 | 871 | 75.4% | 3,681,581 ± 75,634 | 258.2 ± 5.7 | 5406.8 ± 221.7 | 1193.8 ± 54.9 | 2 | 5896.9 | 1,044,022 |
+| 2,500 | 1,802 | 50.1% | 3,587,757 ± 66,043 | 266.7 ± 50.1 | 5445.3 ± 308.2 | 1170.8 ± 29.2 | 2 | 5588.5 | 2,441,983 |
+| 5,000 | 2,735 | 26.8% | 3,655,680 ± 140,362 | 249.6 ± 16.1 | 5401.6 ± 546.7 | 1158.2 ± 24.5 | 2 | 4732.2 | 4,278,552 |
+| 10,000 | 3,566 | 8.8% | 4,496,499 ± 37,185 | 231.3 ± 6.3 | 4125.6 ± 461.6 | 1146.7 ± 16.7 | 2 | 3562.4 | 7,368,357 |
+| 25,000 | 3,978 | 0.5% | 6,464,947 ± 67,505 | 220.9 ± 2.5 | 2261.9 ± 194.3 | 1256.2 ± 301.5 | 2 | 2208.9 | 16,204,060 |
+| 50,000 | 3,999 | 0.0% | 8,597,773 ± 40,226 | 215.9 ± 2.6 | 1516.6 ± 100.4 | 1105.2 ± 11.0 | 2 | 1647.4 | 30,060,340 |
+| 100,000 | 3,999 | 0.0% | 10,701,254 ± 206,718 | 216.1 ± 13.9 | 883.3 ± 108.9 | 1093.5 ± 5.5 | 3 | 1362.9 | 57,870,393 |
 
-## Regression
+## Regression and memory
 
-Let g(n) be the number of distinct groups in the first n records (shown in the table). T(n) = -886.9939 + 93.5567 log₂(g(n)) + 92.9470 [g(n)/n] log₂(g(n)) nanoseconds; R² = 0.8358.
+Let g(n) be the distinct-group count in the first n source rows, as tabulated above. Operation 2 has the highest mean latency across the ten sizes. T(n) = -225.8730 + 108.9984 log₂(g(n)) + 594.6253 [g(n)/n] log₂(g(n)) ns; R² = 0.9422.
 
-The three basis functions represent fixed work, O(log g) balanced-tree updates, and extra O(log g) work weighted by group occupancy. The factor g/n is a coarse proxy for how often a move empties or recreates a group; it is not an exact probability. The fit is descriptive over this dataset, with a negative intercept outside the tested range. It does not prove asymptotic behavior. Group count saturates near 4,000 while singleton share falls to zero, so measured update time is not monotone in n. Latencies are sampled every 128 operations; timer overhead and operating-system scheduling contribute to variance.
+The three terms model fixed work, heap height O(log g), and extra heap work weighted by group occupancy. The g/n factor is a heuristic for update churn, not an exact probability. Coefficients come from ordinary least squares over the ten operation-2 means. The table also identifies the slowest operation at each individual size; operation 3 is slightly slower at 100,000 rows. The negative intercept means the model should not be extrapolated outside the tested range. This is a dataset-specific descriptive fit and does not prove asymptotic growth. Distinct groups saturate near 4,000, so update cost need not grow monotonically with n.
 
-## Memory method
-
-`estimated_bytes()` sums vector capacity, string capacities, hash buckets and approximate nodes, and ordered-set nodes. This is a reproducible approximation, not process RSS: allocator metadata, code, stack, the prepared operation tape, and source CSV are excluded. Short strings may be stored inline, so counting their capacities can overstate heap use.
+Memory is `deep_sizeof(database)` before timing: `sys.getsizeof` sums reachable lists, dictionaries, sets, tuples, heap entries, student objects, strings, integers, and fractions once each. Immutable strings shared with the source objects are included because the database references them. The separate source list, Python interpreter, allocator overhead, source CSV file, and prepared operation tape are excluded; this is not process RSS.
 
 ![Slowest operation and fit](slowest_regression.svg)
 
-![Throughput](throughput.svg)
+![Mixed workload throughput](throughput.svg)
 
-## Three V4 approaches on 100,000 students
+## Task II: S5 sorting by group
 
-All approaches used the same preselected 25,000-operation tape, shuffled in 250-operation blocks containing exactly 50:100:100 operations. Each approach ran for 10 seconds; reported throughput is normalized to exactly 10 seconds to account for the final block. Setup and post-run validation are excluded.
-
-| Approach | Main containers | Operations observed | Elapsed, s | Operations / 10 s |
-|---|---|---:|---:|---:|
-| vector_scan | vector, temporary hash aggregates | 9,728 | 10.039 | 9,690 |
-| aggregate_map | email hash + ordered group map | 557,056 | 10.001 | 557,021 |
-| ranked_sets | email hash + two ordered group sets | 102,235,968 | 10.000 | 102,235,907 |
-
-**Winner: `ranked_sets`.** Vector queries and email changes scan n students: O(n) work per operation. The aggregate map finds an email in expected O(1), changes two groups in O(log g), and scans g group aggregates for each maximum query. Ranked sets find an email in expected O(1), update two ranking sets in O(log g), and return k tied groups in O(k). The weighted workload has 60% maximum queries, explaining the large ranked-set advantage at 100,000 rows. All three approaches pass differential tests after group changes.
-
-## S5: sorting by group
-
-`standard` sorts student records using `std::sort` and group comparisons, O(n log n). `radix` uses five stable counting passes over the nonconstant characters of the fixed `AAA-00` group key, then reorders records, O(5(n + 256)). The radix timing includes index arrays and all counting passes. Both methods sort a copied input; copying and CSV writing are outside the measured sort time. Each point uses five repetitions; method order alternates across repetitions.
+`standard` uses Python's `sorted` with the group key, O(n log n). `radix` builds a dictionary of group buckets, uses five stable counting passes to order the distinct `AAA-00` keys, then concatenates buckets: O(n + 5(g + 256)). The timed interval includes all helper structures made by each sort and excludes CSV writing. Each size and method has five repetitions; method order alternates.
 
 | Students | Standard ms, mean ± SD | Radix ms, mean ± SD | Faster method |
 |---:|---:|---:|---|
-| 100 | 0.0075 ± 0.0080 | 0.0023 ± 0.0008 | radix |
-| 250 | 0.0181 ± 0.0025 | 0.0063 ± 0.0017 | radix |
-| 500 | 0.0320 ± 0.0101 | 0.0105 ± 0.0045 | radix |
-| 1,000 | 0.0707 ± 0.0122 | 0.0257 ± 0.0092 | radix |
-| 2,500 | 0.2020 ± 0.0124 | 0.0593 ± 0.0108 | radix |
-| 5,000 | 0.4579 ± 0.0146 | 0.1160 ± 0.0186 | radix |
-| 10,000 | 1.0113 ± 0.0395 | 0.2449 ± 0.0377 | radix |
-| 25,000 | 2.6646 ± 0.0495 | 0.6388 ± 0.0949 | radix |
-| 50,000 | 5.2760 ± 0.1109 | 1.3865 ± 0.2144 | radix |
-| 100,000 | 10.3222 ± 0.1462 | 4.5381 ± 0.6170 | radix |
+| 100 | 0.0075 ± 0.0025 | 0.1075 ± 0.0083 | standard |
+| 250 | 0.0201 ± 0.0046 | 0.2223 ± 0.0087 | standard |
+| 500 | 0.0428 ± 0.0091 | 0.4387 ± 0.0091 | standard |
+| 1,000 | 0.0921 ± 0.0127 | 0.7874 ± 0.0046 | standard |
+| 2,500 | 0.2526 ± 0.0163 | 1.6629 ± 0.0486 | standard |
+| 5,000 | 0.5262 ± 0.0160 | 2.6026 ± 0.0256 | standard |
+| 10,000 | 1.1621 ± 0.0181 | 3.6134 ± 0.0358 | standard |
+| 25,000 | 3.2699 ± 0.0390 | 4.8468 ± 0.1366 | standard |
+| 50,000 | 7.0119 ± 0.0737 | 6.2914 ± 0.1812 | radix |
+| 100,000 | 14.7018 ± 0.1148 | 9.9429 ± 0.3269 | radix |
 
-![S5 sorting comparison](s5_sort.svg)
+![S5 sort comparison](s5_sort.svg)
 
-The full 100,000-row outputs are `s5_standard.csv` and `s5_radix.csv`. An independent CSV check confirmed that each has all source email identifiers exactly once and is ordered by `m_group`. Their within-group row order may differ, as the assignment permits.
+The full sorted outputs are `s5_standard.csv` and `s5_radix.csv`. Independent checks confirm ascending groups and exact preservation of all input fields and email identifiers; tie order is unspecified.
 
 ## Defense notes
 
-The ranked-set design is rational for the given 50:100:100 mix because two of the three frequent operations ask for maxima. Differential tests check all query answers after 1,000 random changes; the timed run also validates index consistency afterward. With untrusted inputs, both email and group hash tables can suffer collision attacks: use ordered maps for both to guarantee logarithmic lookups, keep balanced group rankings, validate input sizes, and paginate a potentially huge tie result. CSV parsing and operation generation happen before timing.
+All three designs pass differential tests after randomized group changes, including ties and disappearing groups. The ranked index rebuilds stale heaps periodically to bound their memory. Python dictionaries use randomized string hashing but do not offer deterministic worst-case lookup time. For adversarial input, replace email and group dictionaries with a balanced search tree for O(log n) lookup, validate sizes and formats, and paginate large tied results.

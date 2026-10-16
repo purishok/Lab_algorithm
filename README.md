@@ -1,44 +1,51 @@
 # Homework 1: sorting and data structures
 
-Assigned student: **Михайло Степанюк**, ПСА25/Б-1. The assignment spreadsheet (row 90) gives Task I variant **V4**, workload ratio **50:100:100**, and Task II variant **S5** (ascending `m_group`). The instructor confirmed that AI may complete the whole lab, superseding the narrower AI-use wording in the supplied PDF.
+Assigned student: **Михайло Степанюк**, ПСА25/Б-1. Spreadsheet row 90 assigns Task I **V4**, operation ratio **50:100:100**, and Task II **S5** (ascending `m_group`). The teacher confirmed Python and full AI assistance are allowed, despite the narrower wording in the supplied PDF.
 
-## What is implemented
+This repository uses **Python 3.10+ and only the standard library**. The implementations are in [`src/lab.py`](src/lab.py); benchmark and demo commands are in [`src/benchmark.py`](src/benchmark.py). No C++ source or build step is required.
 
-Task I has three C++17 designs with the same operations:
+## Task I: three V4 designs
 
-| Design | Main containers | Maximum queries | Email change |
+| Design | Containers | Maximum queries | Group change by email |
 |---|---|---|---|
-| `V4Vector` | Student vector; temporary hash aggregates | O(n) scan | O(n) scan |
-| `V4AggregateMap` | Email hash plus ordered map of group counts and sums | O(g) group scan | Expected O(1) lookup + O(log g) update |
-| `V4Index` | Email hash plus two ordered group rankings | O(k) for k tied groups | Expected O(1) lookup + O(log g) update |
+| `VectorScan` | Student list; aggregate map rebuilt for each query | O(n + g) | O(n) |
+| `AggregateMap` | Email dictionary and group aggregate dictionary | O(g) | Expected O(1) |
+| `RankedIndex` | Email/group dictionaries, tie sets, bounded max heaps | O(k) amortized for k winning groups | Expected O(log g) amortized |
 
-For the assigned ratio, `V4Index` won the 10 second comparison on 100,000 students. Its ten-size experiment uses five independent 10 second runs per size from 100 to 100,000 students. The report includes throughput, mean and standard deviation for each operation, a memory estimate, regression with a plotted fit, and a discussion of the nonmonotone measurements. All mutation-sensitive answers use exact integer-cent sums for averages.
+`RankedIndex` won the 10-second comparison on 100,000 students. Its heaps can contain stale ranking keys after updates; a periodic heap rebuild bounds their size. A result with many tied groups takes time proportional to the number returned. Integer cents and exact fractions keep average ties correct.
 
-Task II uses `std::sort` and a custom stable least-significant-digit radix sort over the five varying characters of each `AAA-00` group key. Both methods export all 100,000 students to separate sorted CSVs. Sort timing excludes input duplication and CSV writing but includes all helper structures created inside the sort. Five timings per method and size are reported for ten database sizes. Full-output checks verified sorted order and preservation of every email identifier.
+The winner was measured for **ten sizes from 100 to 100,000, five 10-second runs per size**. The 50:100:100 operation tape is randomized in blocks, prepared before timing, and uses existing emails and destination groups. The report includes operation counts, individual mean operation times, standard deviations, a Python object-memory estimate, regression, and graphs.
 
-## Build, test, and reproduce
+## Task II: S5 sorting
 
-Requires Make, a C++17 compiler, and Python 3 with only its standard library.
+The standard method uses Python's `sorted(..., key=m_group)`. The custom method groups records in buckets, radix-sorts the distinct fixed-format `AAA-00` group keys using five stable counting passes, then concatenates buckets. Both write complete sorted CSVs: `results/s5_standard.csv` and `results/s5_radix.csv`. Timings at ten sizes have five repetitions per method. CSV writing is outside sort timing; bucket and radix helper structures are inside it.
+
+## Run and verify
+
+From the repository root:
 
 ```sh
-make test
-make build/demo_v4
-./build/demo_v4 students.csv
-make compare
-make benchmark
-make sort-benchmark
-python3 analyze.py
-make verify-results
+python3 -m unittest discover -s tests -p 'test_lab.py' -v
+python3 tests/verify_outputs.py
+python3 -m src.benchmark demo
 ```
 
-The interactive demo accepts `count`, `move EMAIL GROUP`, `average`, and `quit`. The Task I comparison takes about 30 seconds. The winner's full experiment takes about 500 seconds (10 sizes × 5 repetitions × 10 seconds). `results/REPORT.md` contains tables, model details, plots, and defense notes. The raw timings are `results/v4_comparison.csv`, `results/v4_benchmark.csv`, and `results/s5_benchmark.csv`. The full S5 exports are `results/s5_standard.csv` and `results/s5_radix.csv`.
+The demo accepts `count`, `move EMAIL GROUP`, `average`, and `quit`. To reproduce all measurements and generated files:
 
-The prepared mixed workload chooses existing student emails and existing destination groups, randomizes operation order in the required ratio, and repeats its tape during timing. Database initialization, operation preparation, final consistency checks, and CSV output are outside their respective timed intervals.
+```sh
+python3 -m src.benchmark compare
+python3 -m src.benchmark winner
+python3 -m src.benchmark sort
+python3 analyze.py
+python3 tests/verify_outputs.py
+```
+
+The comparison takes about 30 seconds. The winner experiment takes about 500 seconds. `results/REPORT.md` contains the tables, plots, regression function, method details, and defense notes. Raw measurements are in the three benchmark CSVs.
 
 ## Defense and limitations
 
-For a hostile input or DoS setting, replace both email and group hash tables with balanced trees (`std::map`) for worst-case logarithmic lookup. Keep the balanced group rankings, validate input size and group format, and paginate a very large tied result. In the supplied dataset, distinct groups saturate near 4,000 and singleton groups become rare as n grows; this explains why operation 2 does not simply increase with n. The regression is a descriptive fit to the measured range (R² shown in the report), not a proof of asymptotic growth. The memory figure estimates container-owned storage and may count inline short-string capacity; it is not process RSS.
+The indexed design suits a workload with 60% maximum queries. Updates maintain group counts, exact rating sums, and the two rankings. Tests compare all three designs to an independent calculation after random group moves, including ties and disappearing groups. For adversarial input, Python dictionaries have no deterministic worst-case lookup guarantee; use a balanced search tree for email and group indexes, constrain inputs, and paginate a huge tied result. The memory number counts reachable Python objects with `sys.getsizeof` once each; it excludes interpreter and allocator overhead, so it is not process RSS. The regression describes these ten dataset prefixes and is not a proof of asymptotic growth.
 
 ## Submission
 
-The implementation and experiments are complete for the assigned variants. Before submitting, run `make test` on your own machine, read `results/REPORT.md`, and be ready to explain the three data structures, correctness after a `move`, timing boundaries, regression terms, radix passes, and DoS tradeoffs. Submit the GitHub repository URL, plus any report/archive required by your course portal. The PDF does not specify the portal or upload format, so confirm that with your instructor. Disclose AI assistance in accordance with the instructor's direct permission.
+Run the tests, read `results/REPORT.md`, and be ready to explain all three designs, the timing boundaries, group updates, regression, radix passes, and DoS tradeoffs. Submit the GitHub repository URL and any report/archive your course portal requires. The PDF does not specify the portal or upload format, so confirm that detail with the teacher. Disclose AI assistance according to the teacher's permission.
