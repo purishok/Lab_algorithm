@@ -29,13 +29,13 @@ def solve_3x3(matrix, vector):
 
 
 def fit(points):
-    # n is scaled for numerical stability; convert its coefficient back below.
-    features = [[1.0, math.log2(n), n / 100000.0] for n, value in points]
-    y = [value for n, value in points]
+    # Three theory-motivated features: fixed work, tree height, and an
+    # occupancy-weighted tree term for group deletion/recreation.
+    features = [[1.0, math.log2(groups), groups / n * math.log2(groups)] for n, groups, value in points]
+    y = [value for n, groups, value in points]
     matrix = [[sum(row[i] * row[j] for row in features) for j in range(3)] for i in range(3)]
     vector = [sum(row[i] * value for row, value in zip(features, y)) for i in range(3)]
-    c0, c_log, c_scaled = solve_3x3(matrix, vector)
-    return c0, c_log, c_scaled / 100000.0
+    return solve_3x3(matrix, vector)
 
 
 def svg_chart(path, title, ylabel, series, y_max=None):
@@ -101,8 +101,8 @@ def main():
         stds = [statistics.stdev(float(row[f"op{k}_mean_ns"]) for row in group) for k in (1, 2, 3)]
         slowest = max(range(3), key=lambda i: means[i])
         summary.append((n, statistics.mean(operations), statistics.stdev(operations), means, stds, slowest + 1, int(group[0]["estimated_bytes"]), len(group_counts), singleton_fraction))
-    coefficients = fit([(n, means[slowest - 1]) for n, _, _, means, _, slowest, *_ in summary])
-    predicted = [(n, coefficients[0] + coefficients[1] * math.log2(n) + coefficients[2] * n, 0) for n, *_ in summary]
+    coefficients = fit([(n, group_count, means[slowest - 1]) for n, _, _, means, _, slowest, _, group_count, _ in summary])
+    predicted = [(n, coefficients[0] + coefficients[1] * math.log2(group_count) + coefficients[2] * group_count / n * math.log2(group_count), 0) for n, _, _, _, _, _, _, group_count, _ in summary]
     actual = [(n, means[slowest - 1], stds[slowest - 1]) for n, _, _, means, stds, slowest, *_ in summary]
     fitted = {n: value for n, value, _ in predicted}
     observed = [value for _, value, _ in actual]
@@ -111,13 +111,44 @@ def main():
     r_squared = 1 - residual_error / total_error if total_error else float("nan")
     svg_chart(RESULTS / "slowest_regression.svg", "Slowest V4 operation and regression", "Mean latency (ns)", [("Measured ± SD", actual, "#16609e"), ("Least squares fit", predicted, "#e05a38")])
     svg_chart(RESULTS / "throughput.svg", "V4 mixed workload throughput", "Operations in 10 seconds", [("Mean ± SD", [(n, rate, sd) for n, rate, sd, *_ in summary], "#16885b")])
-    c0, c_log, c_n = coefficients
+    c0, c_log, c_occupancy = coefficients
     lines = ["# V4 benchmark results", "", "Variant: V4, ratio 50:100:100. Each row averages five independent 10 second runs. The operation tape contains 25,000 randomly shuffled, preselected operations and repeats cyclically. Student emails and destination groups are chosen from existing values before timing. The initial index build and the final validation are outside the timed interval.", "", "| Students | Groups | Singleton share | Operations / 10 s, mean ± SD | Op 1 ns, mean ± SD | Op 2 ns, mean ± SD | Op 3 ns, mean ± SD | Slowest | Predicted T(n), ns | Estimated bytes |", "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
     for n, rate, sd, means, stds, slowest, memory, group_count, singleton_fraction in summary:
         latency = " | ".join(f"{mean:.1f} ± {sd_value:.1f}" for mean, sd_value in zip(means, stds))
         lines.append(f"| {n:,} | {group_count:,} | {singleton_fraction:.1%} | {rate:,.0f} ± {sd:,.0f} | {latency} | {slowest} | {fitted[n]:.1f} | {memory:,} |")
-    sign = "+" if c_n >= 0 else "−"
-    lines += ["", "## Regression", "", f"T(n) = {c0:.4f} + {c_log:.4f} log₂(n) {sign} {abs(c_n):.9f} n nanoseconds; R² = {r_squared:.4f}.", "", "The basis reflects constant-time work, ordered-set updates with O(log g) complexity for g groups (bounded by n), and the O(n) worst case of the email hash lookup under collisions. It is fitted to the slowest mean operation at each database size. This is a weak descriptive fit: the linear coefficient is negative and the model predicts the 100,000-student case poorly. Group count saturates near 4,000 while the share of singleton groups falls to zero, changing the cost of updates that remove and recreate groups. The benchmark cannot establish an asymptotic growth law from these ten points. Latencies are sampled every 128 operations, so timer overhead and operating-system scheduling contribute to measured variance.", "", "## Memory method", "", "`estimated_bytes()` sums vector capacity, string capacities, hash buckets and approximate nodes, and ordered-set nodes. This is a reproducible approximation, not process RSS: allocator metadata, code, stack, the prepared operation tape, and source CSV are excluded. Short strings may be stored inline, so counting their capacities can overstate heap use.", "", "![Slowest operation and fit](slowest_regression.svg)", "", "![Throughput](throughput.svg)", ""]
+    lines += ["", "## Regression", "", f"Let g(n) be the number of distinct groups in the first n records (shown in the table). T(n) = {c0:.4f} + {c_log:.4f} log₂(g(n)) + {c_occupancy:.4f} [g(n)/n] log₂(g(n)) nanoseconds; R² = {r_squared:.4f}.", "", "The three basis functions represent fixed work, O(log g) balanced-tree updates, and extra O(log g) work weighted by group occupancy. The factor g/n is a coarse proxy for how often a move empties or recreates a group; it is not an exact probability. The fit is descriptive over this dataset, with a negative intercept outside the tested range. It does not prove asymptotic behavior. Group count saturates near 4,000 while singleton share falls to zero, so measured update time is not monotone in n. Latencies are sampled every 128 operations; timer overhead and operating-system scheduling contribute to variance.", "", "## Memory method", "", "`estimated_bytes()` sums vector capacity, string capacities, hash buckets and approximate nodes, and ordered-set nodes. This is a reproducible approximation, not process RSS: allocator metadata, code, stack, the prepared operation tape, and source CSV are excluded. Short strings may be stored inline, so counting their capacities can overstate heap use.", "", "![Slowest operation and fit](slowest_regression.svg)", "", "![Throughput](throughput.svg)", ""]
+
+    with (RESULTS / "v4_comparison.csv").open(newline="") as stream:
+        compared = list(csv.DictReader(stream))
+    if {row["approach"] for row in compared} != {"vector_scan", "aggregate_map", "ranked_sets"}:
+        raise ValueError("Expected all three V4 approaches")
+    lines += ["## Three V4 approaches on 100,000 students", "", "All approaches used the same preselected 25,000-operation tape, shuffled in 250-operation blocks containing exactly 50:100:100 operations. Each approach ran for 10 seconds; reported throughput is normalized to exactly 10 seconds to account for the final block. Setup and post-run validation are excluded.", "", "| Approach | Main containers | Operations observed | Elapsed, s | Operations / 10 s |", "|---|---|---:|---:|---:|"]
+    descriptions = {
+        "vector_scan": "vector, temporary hash aggregates",
+        "aggregate_map": "email hash + ordered group map",
+        "ranked_sets": "email hash + two ordered group sets",
+    }
+    for row in compared:
+        elapsed = float(row["elapsed_s"])
+        operations = int(row["operations"])
+        lines.append(f"| {row['approach']} | {descriptions[row['approach']]} | {operations:,} | {elapsed:.3f} | {operations * 10 / elapsed:,.0f} |")
+    winner = max(compared, key=lambda row: int(row["operations"]) / float(row["elapsed_s"]))["approach"]
+    lines += ["", f"**Winner: `{winner}`.** Vector queries and email changes scan n students: O(n) work per operation. The aggregate map finds an email in expected O(1), changes two groups in O(log g), and scans g group aggregates for each maximum query. Ranked sets find an email in expected O(1), update two ranking sets in O(log g), and return k tied groups in O(k). The weighted workload has 60% maximum queries, explaining the large ranked-set advantage at 100,000 rows. All three approaches pass differential tests after group changes.", "", "## S5: sorting by group", "", "`standard` sorts student records using `std::sort` and group comparisons, O(n log n). `radix` uses five stable counting passes over the nonconstant characters of the fixed `AAA-00` group key, then reorders records, O(5(n + 256)). The radix timing includes index arrays and all counting passes. Both methods sort a copied input; copying and CSV writing are outside the measured sort time. Each point uses five repetitions; method order alternates across repetitions.", "", "| Students | Standard ms, mean ± SD | Radix ms, mean ± SD | Faster method |", "|---:|---:|---:|---|"]
+    with (RESULTS / "s5_benchmark.csv").open(newline="") as stream:
+        sorting = list(csv.DictReader(stream))
+    sort_series = {"standard": [], "radix": []}
+    for n in sorted(by_size):
+        stats = {}
+        for method in ("standard", "radix"):
+            values = [float(row["sort_ms"]) for row in sorting if int(row["n"]) == n and row["method"] == method]
+            if len(values) != 5:
+                raise ValueError(f"Expected five S5 samples for {n}/{method}")
+            stats[method] = (statistics.mean(values), statistics.stdev(values))
+            sort_series[method].append((n, *stats[method]))
+        faster = min(stats, key=lambda method: stats[method][0])
+        lines.append(f"| {n:,} | {stats['standard'][0]:.4f} ± {stats['standard'][1]:.4f} | {stats['radix'][0]:.4f} ± {stats['radix'][1]:.4f} | {faster} |")
+    svg_chart(RESULTS / "s5_sort.svg", "S5 sorting by group", "Sort time (ms)", [("Standard mean ± SD", sort_series["standard"], "#16609e"), ("Radix mean ± SD", sort_series["radix"], "#e05a38")])
+    lines += ["", "![S5 sorting comparison](s5_sort.svg)", "", "The full 100,000-row outputs are `s5_standard.csv` and `s5_radix.csv`. An independent CSV check confirmed that each has all source email identifiers exactly once and is ordered by `m_group`. Their within-group row order may differ, as the assignment permits.", "", "## Defense notes", "", "The ranked-set design is rational for the given 50:100:100 mix because two of the three frequent operations ask for maxima. Differential tests check all query answers after 1,000 random changes; the timed run also validates index consistency afterward. With untrusted inputs, both email and group hash tables can suffer collision attacks: use ordered maps for both to guarantee logarithmic lookups, keep balanced group rankings, validate input sizes, and paginate a potentially huge tie result. CSV parsing and operation generation happen before timing.", ""]
     (RESULTS / "REPORT.md").write_text("\n".join(lines))
 
 

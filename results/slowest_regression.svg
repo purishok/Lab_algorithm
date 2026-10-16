@@ -62,17 +62,17 @@
 <circle cx="865.0" cy="375.1" r="3" fill="#16609e"/>
 <rect x="85" y="478" width="16" height="4" fill="#16609e"/>
 <text x="107" y="485" font-size="12" font-family="sans-serif">Measured ± SD</text>
-<polyline points="85.0,238.4 188.5,220.1 266.7,206.7 345.0,194.1 448.5,180.2 526.7,174.1 605.0,176.2 708.5,206.2 786.7,273.4 865.0,422.0" fill="none" stroke="#e05a38" stroke-width="2.5"/>
-<circle cx="85.0" cy="238.4" r="3" fill="#e05a38"/>
-<circle cx="188.5" cy="220.1" r="3" fill="#e05a38"/>
-<circle cx="266.7" cy="206.7" r="3" fill="#e05a38"/>
-<circle cx="345.0" cy="194.1" r="3" fill="#e05a38"/>
-<circle cx="448.5" cy="180.2" r="3" fill="#e05a38"/>
-<circle cx="526.7" cy="174.1" r="3" fill="#e05a38"/>
-<circle cx="605.0" cy="176.2" r="3" fill="#e05a38"/>
-<circle cx="708.5" cy="206.2" r="3" fill="#e05a38"/>
-<circle cx="786.7" cy="273.4" r="3" fill="#e05a38"/>
-<circle cx="865.0" cy="422.0" r="3" fill="#e05a38"/>
+<polyline points="85.0,310.9 188.5,230.9 266.7,174.5 345.0,133.7 448.5,121.5 526.7,154.9 605.0,213.4 708.5,289.4 786.7,322.6 865.0,339.5" fill="none" stroke="#e05a38" stroke-width="2.5"/>
+<circle cx="85.0" cy="310.9" r="3" fill="#e05a38"/>
+<circle cx="188.5" cy="230.9" r="3" fill="#e05a38"/>
+<circle cx="266.7" cy="174.5" r="3" fill="#e05a38"/>
+<circle cx="345.0" cy="133.7" r="3" fill="#e05a38"/>
+<circle cx="448.5" cy="121.5" r="3" fill="#e05a38"/>
+<circle cx="526.7" cy="154.9" r="3" fill="#e05a38"/>
+<circle cx="605.0" cy="213.4" r="3" fill="#e05a38"/>
+<circle cx="708.5" cy="289.4" r="3" fill="#e05a38"/>
+<circle cx="786.7" cy="322.6" r="3" fill="#e05a38"/>
+<circle cx="865.0" cy="339.5" r="3" fill="#e05a38"/>
 <rect x="290" y="478" width="16" height="4" fill="#e05a38"/>
 <text x="312" y="485" font-size="12" font-family="sans-serif">Least squares fit</text>
 </svg>

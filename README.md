@@ -1,38 +1,44 @@
 # Homework 1: sorting and data structures
 
-Assigned row: **Михайло Степанюк**, ПСА25/Б-1, Task I **V4**, operation ratio **50:100:100**, Task II **S5** (sort by `m_group`). Source: row 90 of `HW1_variants_2026.xlsx`.
+Assigned student: **Михайло Степанюк**, ПСА25/Б-1. The assignment spreadsheet (row 90) gives Task I variant **V4**, workload ratio **50:100:100**, and Task II variant **S5** (ascending `m_group`). The instructor confirmed that AI may complete the whole lab, superseding the narrower AI-use wording in the supplied PDF.
 
-## Submission status
+## What is implemented
 
-This repository is **not yet a complete submission**. The PDF permits AI implementation of one Task I approach, linear regression, graphs, and automated tests. Accordingly, this repository contains one V4 approach and its experiments and tests. You must write and benchmark two more distinct Task I container approaches and both S5 sorting implementations yourself. You must also compare the two sorting times across database sizes. Do not submit this repository as a finished lab until those items are complete and reviewed.
+Task I has three C++17 designs with the same operations:
 
-## Included V4 approach
+| Design | Main containers | Maximum queries | Email change |
+|---|---|---|---|
+| `V4Vector` | Student vector; temporary hash aggregates | O(n) scan | O(n) scan |
+| `V4AggregateMap` | Email hash plus ordered map of group counts and sums | O(g) group scan | Expected O(1) lookup + O(log g) update |
+| `V4Index` | Email hash plus two ordered group rankings | O(k) for k tied groups | Expected O(1) lookup + O(log g) update |
 
-`src/v4_index.cpp` reads `students.csv` and keeps students in a vector. An email hash index locates the student to change. Two ordered sets rank nonempty groups by student count and exact average rating; each update removes and reinserts only the affected groups. Ratings are aggregated as integer cents, avoiding floating point errors when groups have equal averages.
+For the assigned ratio, `V4Index` won the 10 second comparison on 100,000 students. Its ten-size experiment uses five independent 10 second runs per size from 100 to 100,000 students. The report includes throughput, mean and standard deviation for each operation, a memory estimate, regression with a plotted fit, and a discussion of the nonmonotone measurements. All mutation-sensitive answers use exact integer-cent sums for averages.
 
-For `g` nonempty groups and `k` tied winning groups, the count and average queries cost `O(k)` to return the result; moving a student costs expected `O(1)` email lookup plus `O(log g)` ordered set updates. Hash lookup is vulnerable to adversarial collisions, and a hostile user can cause many tied groups. For a DoS-resistant design, replace the email hash index with a balanced tree (`std::map`) for worst-case `O(log n)` lookup, retain balanced group rankings, bound input size, and consider output pagination for ties.
+Task II uses `std::sort` and a custom stable least-significant-digit radix sort over the five varying characters of each `AAA-00` group key. Both methods export all 100,000 students to separate sorted CSVs. Sort timing excludes input duplication and CSV writing but includes all helper structures created inside the sort. Five timings per method and size are reported for ten database sizes. Full-output checks verified sorted order and preservation of every email identifier.
 
-## Build and run
+## Build, test, and reproduce
 
-Requires a C++17 compiler, Make, and Python 3 standard library.
+Requires Make, a C++17 compiler, and Python 3 with only its standard library.
 
 ```sh
 make test
-make build/benchmark
-mkdir -p results
-./build/benchmark students.csv results/v4_benchmark.csv 10 5
+make build/demo_v4
+./build/demo_v4 students.csv
+make compare
+make benchmark
+make sort-benchmark
 python3 analyze.py
+make verify-results
 ```
 
-The benchmark takes about **500 seconds**: 10 sizes × 5 repetitions × 10 seconds. It excludes initial CSV reading and index construction from the 10 second workload. Queries and updates are randomly shuffled in the assigned 50:100:100 ratio. The prepared operation tape repeats to avoid generation time during measurement. The report and two SVG graphs are in `results/`.
+The interactive demo accepts `count`, `move EMAIL GROUP`, `average`, and `quit`. The Task I comparison takes about 30 seconds. The winner's full experiment takes about 500 seconds (10 sizes × 5 repetitions × 10 seconds). `results/REPORT.md` contains tables, model details, plots, and defense notes. The raw timings are `results/v4_comparison.csv`, `results/v4_benchmark.csv`, and `results/s5_benchmark.csv`. The full S5 exports are `results/s5_standard.csv` and `results/s5_radix.csv`.
 
-## What you need to finish
+The prepared mixed workload chooses existing student emails and existing destination groups, randomizes operation order in the required ratio, and repeats its tape during timing. Database initialization, operation preparation, final consistency checks, and CSV output are outside their respective timed intervals.
 
-1. Implement two more **distinct** V4 approaches using different containers. A straightforward baseline is a vector scan of students for each query; a second approach can use maps of group aggregates but scan the aggregates to find maxima. Explain their complexities and verify mutations. Benchmark all three approaches for 10 seconds each with the same operation tape and ratio, then identify the fastest.
-2. If one of your approaches beats this implementation, run the 10-size, at-least-five-repetition experiment on that winner and update the regression, graph, and memory discussion accordingly.
-3. Implement S5 twice: one using the language's standard sort, one using your own faster candidate such as bucket/radix sorting on the fixed-format group key. Include construction time for helper structures and exclude CSV write time from the sort timing. Export sorted students to CSV, compare sorting time across sizes, and check the output has every record in ascending `m_group` order.
-4. Prepare to demonstrate correct queries after group changes, the measurement setup, why the chosen containers fit the ratio, and how a DoS-resistant version would differ.
+## Defense and limitations
 
-## Submitting
+For a hostile input or DoS setting, replace both email and group hash tables with balanced trees (`std::map`) for worst-case logarithmic lookup. Keep the balanced group rankings, validate input size and group format, and paginate a very large tied result. In the supplied dataset, distinct groups saturate near 4,000 and singleton groups become rare as n grows; this explains why operation 2 does not simply increase with n. The regression is a descriptive fit to the measured range (R² shown in the report), not a proof of asymptotic growth. The memory figure estimates container-owned storage and may count inline short-string capacity; it is not process RSS.
 
-After finishing the missing implementations, rerun tests and experiments on the machine used for the report. Check that `results/REPORT.md`, the plots, and your S5 outputs correspond to the final code. Commit and push the final files, then submit the GitHub repository URL **and** any report or archive required by your course platform. The PDF does not specify a course portal or exact upload format, so confirm those details with your instructor. Include an honest AI-use statement identifying the permitted parts assisted here.
+## Submission
+
+The implementation and experiments are complete for the assigned variants. Before submitting, run `make test` on your own machine, read `results/REPORT.md`, and be ready to explain the three data structures, correctness after a `move`, timing boundaries, regression terms, radix passes, and DoS tradeoffs. Submit the GitHub repository URL, plus any report/archive required by your course portal. The PDF does not specify the portal or upload format, so confirm that with your instructor. Disclose AI assistance in accordance with the instructor's direct permission.
