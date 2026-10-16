@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+<rect width="100%" height="100%" fill="white"/>
+<text x="450.0" y="30" text-anchor="middle" font-size="20" font-family="sans-serif">Slowest V4 operation and regression</text>
+<line x1="85" y1="445.0" x2="865" y2="445.0" stroke="#e6e9ed"/>
+<text x="73" y="450.0" text-anchor="end" font-size="12" font-family="sans-serif">0.0</text>
+<line x1="85" y1="367.0" x2="865" y2="367.0" stroke="#e6e9ed"/>
+<text x="73" y="372.0" text-anchor="end" font-size="12" font-family="sans-serif">204.8</text>
+<line x1="85" y1="289.0" x2="865" y2="289.0" stroke="#e6e9ed"/>
+<text x="73" y="294.0" text-anchor="end" font-size="12" font-family="sans-serif">409.6</text>
+<line x1="85" y1="211.0" x2="865" y2="211.0" stroke="#e6e9ed"/>
+<text x="73" y="216.0" text-anchor="end" font-size="12" font-family="sans-serif">614.4</text>
+<line x1="85" y1="133.0" x2="865" y2="133.0" stroke="#e6e9ed"/>
+<text x="73" y="138.0" text-anchor="end" font-size="12" font-family="sans-serif">819.3</text>
+<line x1="85" y1="55.0" x2="865" y2="55.0" stroke="#e6e9ed"/>
+<text x="73" y="60.0" text-anchor="end" font-size="12" font-family="sans-serif">1024.1</text>
+<text x="85.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">100</text>
+<text x="345.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">1,000</text>
+<text x="605.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">10,000</text>
+<text x="865.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">100,000</text>
+<text x="450.0" y="502" text-anchor="middle" font-size="14" font-family="sans-serif">Students (log scale)</text>
+<text transform="translate(20 260.0) rotate(-90)" text-anchor="middle" font-size="14" font-family="sans-serif">Mean latency (ns)</text>
+<polyline points="85.0,269.8 188.5,239.8 266.7,213.0 345.0,178.6 448.5,122.2 526.7,104.9 605.0,163.2 708.5,284.2 786.7,340.7 865.0,375.1" fill="none" stroke="#16609e" stroke-width="2.5"/>
+<line x1="85.0" y1="271.9" x2="85.0" y2="267.6" stroke="#16609e"/>
+<line x1="81.0" y1="271.9" x2="89.0" y2="271.9" stroke="#16609e"/>
+<line x1="81.0" y1="267.6" x2="89.0" y2="267.6" stroke="#16609e"/>
+<circle cx="85.0" cy="269.8" r="3" fill="#16609e"/>
+<line x1="188.5" y1="240.9" x2="188.5" y2="238.6" stroke="#16609e"/>
+<line x1="184.5" y1="240.9" x2="192.5" y2="240.9" stroke="#16609e"/>
+<line x1="184.5" y1="238.6" x2="192.5" y2="238.6" stroke="#16609e"/>
+<circle cx="188.5" cy="239.8" r="3" fill="#16609e"/>
+<line x1="266.7" y1="214.3" x2="266.7" y2="211.6" stroke="#16609e"/>
+<line x1="262.7" y1="214.3" x2="270.7" y2="214.3" stroke="#16609e"/>
+<line x1="262.7" y1="211.6" x2="270.7" y2="211.6" stroke="#16609e"/>
+<circle cx="266.7" cy="213.0" r="3" fill="#16609e"/>
+<line x1="345.0" y1="181.5" x2="345.0" y2="175.7" stroke="#16609e"/>
+<line x1="341.0" y1="181.5" x2="349.0" y2="181.5" stroke="#16609e"/>
+<line x1="341.0" y1="175.7" x2="349.0" y2="175.7" stroke="#16609e"/>
+<circle cx="345.0" cy="178.6" r="3" fill="#16609e"/>
+<line x1="448.5" y1="125.7" x2="448.5" y2="118.7" stroke="#16609e"/>
+<line x1="444.5" y1="125.7" x2="452.5" y2="125.7" stroke="#16609e"/>
+<line x1="444.5" y1="118.7" x2="452.5" y2="118.7" stroke="#16609e"/>
+<circle cx="448.5" cy="122.2" r="3" fill="#16609e"/>
+<line x1="526.7" y1="113.0" x2="526.7" y2="96.8" stroke="#16609e"/>
+<line x1="522.7" y1="113.0" x2="530.7" y2="113.0" stroke="#16609e"/>
+<line x1="522.7" y1="96.8" x2="530.7" y2="96.8" stroke="#16609e"/>
+<circle cx="526.7" cy="104.9" r="3" fill="#16609e"/>
+<line x1="605.0" y1="172.7" x2="605.0" y2="153.7" stroke="#16609e"/>
+<line x1="601.0" y1="172.7" x2="609.0" y2="172.7" stroke="#16609e"/>
+<line x1="601.0" y1="153.7" x2="609.0" y2="153.7" stroke="#16609e"/>
+<circle cx="605.0" cy="163.2" r="3" fill="#16609e"/>
+<line x1="708.5" y1="290.1" x2="708.5" y2="278.2" stroke="#16609e"/>
+<line x1="704.5" y1="290.1" x2="712.5" y2="290.1" stroke="#16609e"/>
+<line x1="704.5" y1="278.2" x2="712.5" y2="278.2" stroke="#16609e"/>
+<circle cx="708.5" cy="284.2" r="3" fill="#16609e"/>
+<line x1="786.7" y1="347.8" x2="786.7" y2="333.7" stroke="#16609e"/>
+<line x1="782.7" y1="347.8" x2="790.7" y2="347.8" stroke="#16609e"/>
+<line x1="782.7" y1="333.7" x2="790.7" y2="333.7" stroke="#16609e"/>
+<circle cx="786.7" cy="340.7" r="3" fill="#16609e"/>
+<line x1="865.0" y1="378.0" x2="865.0" y2="372.3" stroke="#16609e"/>
+<line x1="861.0" y1="378.0" x2="869.0" y2="378.0" stroke="#16609e"/>
+<line x1="861.0" y1="372.3" x2="869.0" y2="372.3" stroke="#16609e"/>
+<circle cx="865.0" cy="375.1" r="3" fill="#16609e"/>
+<rect x="85" y="478" width="16" height="4" fill="#16609e"/>
+<text x="107" y="485" font-size="12" font-family="sans-serif">Measured ± SD</text>
+<polyline points="85.0,238.4 188.5,220.1 266.7,206.7 345.0,194.1 448.5,180.2 526.7,174.1 605.0,176.2 708.5,206.2 786.7,273.4 865.0,422.0" fill="none" stroke="#e05a38" stroke-width="2.5"/>
+<circle cx="85.0" cy="238.4" r="3" fill="#e05a38"/>
+<circle cx="188.5" cy="220.1" r="3" fill="#e05a38"/>
+<circle cx="266.7" cy="206.7" r="3" fill="#e05a38"/>
+<circle cx="345.0" cy="194.1" r="3" fill="#e05a38"/>
+<circle cx="448.5" cy="180.2" r="3" fill="#e05a38"/>
+<circle cx="526.7" cy="174.1" r="3" fill="#e05a38"/>
+<circle cx="605.0" cy="176.2" r="3" fill="#e05a38"/>
+<circle cx="708.5" cy="206.2" r="3" fill="#e05a38"/>
+<circle cx="786.7" cy="273.4" r="3" fill="#e05a38"/>
+<circle cx="865.0" cy="422.0" r="3" fill="#e05a38"/>
+<rect x="290" y="478" width="16" height="4" fill="#e05a38"/>
+<text x="312" y="485" font-size="12" font-family="sans-serif">Least squares fit</text>
+</svg>
