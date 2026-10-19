@@ -4,6 +4,8 @@ import unittest
 from collections import defaultdict
 from pathlib import Path
 from fractions import Fraction
+from collections import Counter
+from src.benchmark import operation_tape
 
 from src.lab import (
     APPROACHES,
@@ -37,6 +39,23 @@ class HomeworkTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.all_students = read_students("students.csv")
+
+    def test_workload_changes_groups_on_every_replay(self):
+        for n in (100, 1000, 100000):
+            source = self.all_students[:n]
+            original = {s.m_email: s.m_group for s in source}
+            current = original.copy()
+            tape = operation_tape(source, 442)
+            self.assertEqual(tape, operation_tape(source, 442))
+            for start in range(0, len(tape), 250):
+                self.assertEqual(Counter(kind for kind, _, _ in tape[start:start + 250]),
+                                 {1: 50, 2: 100, 3: 100})
+            for _ in range(3):
+                for kind, email, group in tape:
+                    if kind == 2:
+                        self.assertNotEqual(current[email], group)
+                        current[email] = group
+                self.assertEqual(current, original)
 
     def test_all_v4_approaches_after_mutations(self):
         rows = [s.copy() for s in self.all_students[:1000]]

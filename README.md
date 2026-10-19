@@ -14,7 +14,7 @@ This repository uses **Python 3.10+ and only the standard library**. The impleme
 
 `RankedIndex` won the 10-second comparison on 100,000 students. Its heaps can contain stale ranking keys after updates; a periodic heap rebuild bounds their size. A result with many tied groups takes time proportional to the number returned. Integer cents and exact fractions keep average ties correct.
 
-The winner was measured for **ten sizes from 100 to 100,000, five 10-second runs per size**. The 50:100:100 operation tape is randomized in blocks, prepared before timing, and uses existing emails and destination groups. The report includes operation counts, individual mean operation times, standard deviations, a Python object-memory estimate, regression, and graphs.
+The winner was measured for **ten sizes from 100 to 100,000, five 10-second runs per size**. The 50:100:100 operation tape is randomized in blocks, prepared before timing, and uses existing emails and destination groups. Every update changes the group: random moves in the first half are undone in reverse order in the second half, with randomly interleaved queries. The complete tape restores the initial state, so repeated cycles also contain only real changes. This deliberately reversible workload is used identically for all three approaches. The report includes operation counts, individual mean operation times, standard deviations, a Python object-memory estimate, regression, and graphs.
 
 ## Task II: S5 sorting
 

@@ -40,7 +40,7 @@ def solve_3x3(matrix: list[list[float]], vector: list[float]) -> list[float]:
 def features(approach: str, n: int, groups: int) -> list[float]:
     if approach == "ranked_index":
         height = math.log2(groups)
-        return [1.0, height, groups / n * height]
+        return [1.0, height, math.log2(n)]
     if approach == "aggregate_map":
         return [1.0, float(groups), groups / n]
     return [1.0, float(n), float(groups)]
@@ -116,7 +116,7 @@ def main() -> None:
     summary = []
     for n, rows in sorted(by_size.items()):
         group_counts = Counter(student["m_group"] for student in students[:n])
-        operations = [int(row["operations"]) for row in rows]
+        operations = [int(row["operations"]) * 10 / float(row["elapsed_s"]) for row in rows]
         means = [statistics.mean(float(row[f"op{k}_mean_ns"]) for row in rows) for k in (1, 2, 3)]
         deviations = [statistics.stdev(float(row[f"op{k}_mean_ns"]) for row in rows) for k in (1, 2, 3)]
         slowest = max(range(3), key=lambda k: means[k])
@@ -144,7 +144,7 @@ def main() -> None:
              "Assigned variant: V4, operation ratio 50:100:100, S5 group sort. Implementation uses Python's standard library.", "",
              f"Environment: Python {platform.python_version()}, {platform.system()} {platform.machine()}.", "",
              "## Task I: three approaches on 100,000 students", "",
-             "All approaches received the same precomputed 25,000-operation tape. Each shuffled 250-operation block contains exactly 50, 100, and 100 operations of types 1, 2, and 3. Emails and destination groups exist in the source. Setup and validation are outside timing. Final blocks can make elapsed time slightly exceed 10 seconds; normalized throughput accounts for that.", "",
+             "All approaches received the same precomputed 25,000-operation tape. Each shuffled 250-operation block contains exactly 50, 100, and 100 operations of types 1, 2, and 3. Emails and destination groups exist in the source. The first half makes random moves to a different group; the second half reverses those moves in reverse order, interleaved with randomly ordered queries. Every move changes the group, and each complete tape restores the initial database, so cyclic replay cannot turn updates into no-ops. This is a reversible workload, not a stream of independent updates. Setup and validation are outside timing. Final blocks can make elapsed time slightly exceed 10 seconds; normalized throughput accounts for that.", "",
              "| Approach | Containers | Observed operations | Elapsed s | Operations / 10 s |",
              "|---|---|---:|---:|---:|"]
     descriptions = {
@@ -166,8 +166,8 @@ def main() -> None:
         lines.append(f"| {row['n']:,} | {row['groups']:,} | {row['singleton_share']:.1%} | {row['throughput']:,.0f} ± {row['throughput_sd']:,.0f} | {latency} | {row['slowest'] + 1} | {prediction:.1f} | {row['memory']:,} |")
     if winner == "ranked_index":
         formula = (f"T(n) = {coefficients[0]:.4f} + {coefficients[1]:.4f} log₂(g(n)) + "
-                   f"{coefficients[2]:.4f} [g(n)/n] log₂(g(n)) ns")
-        basis_note = "The three terms model fixed work, heap height O(log g), and extra heap work weighted by group occupancy. The g/n factor is a heuristic for update churn, not an exact probability."
+                   f"{coefficients[2]:.4f} log₂(n) ns")
+        basis_note = "The basis functions are f1(n)=1, f2(n)=log₂(g(n)), and f3(n)=log₂(n). They represent expected constant-time dictionary/set work, amortized heap maintenance, and exact-average normalization: Fraction reduces integer rating sums and counts using GCD, whose Euclidean algorithm takes O(log n) arithmetic steps because ratings are bounded and sums/counts are O(n). This separates structural work from integer normalization; it is an explanatory cost model, not a full bit-complexity bound. Here g(n) is the initial group count and an upper bound during these moves; empty groups may disappear temporarily."
     elif winner == "aggregate_map":
         formula = f"T(n) = {coefficients[0]:.4f} + {coefficients[1]:.4f} g(n) + {coefficients[2]:.4f} g(n)/n ns"
         basis_note = "The terms model fixed work, scanning g groups, and an occupancy effect; the last term is heuristic."
@@ -176,7 +176,7 @@ def main() -> None:
         basis_note = "The terms model fixed work, scanning n students, and building/scanning g group aggregates."
     lines += ["", "## Regression and memory", "",
               f"Let g(n) be the distinct-group count in the first n source rows, as tabulated above. Operation {regression_operation + 1} has the highest mean latency across the ten sizes. {formula}; R² = {r_squared:.4f}.", "",
-              basis_note + f" Coefficients come from ordinary least squares over the ten operation-{regression_operation + 1} means. The table also identifies the slowest operation at each individual size; operation 3 is slightly slower at 100,000 rows. The negative intercept means the model should not be extrapolated outside the tested range. This is a dataset-specific descriptive fit and does not prove asymptotic growth. Distinct groups saturate near 4,000, so update cost need not grow monotonically with n.", "",
+              basis_note + f" Coefficients come from ordinary least squares over the ten operation-{regression_operation + 1} means. The table also identifies the slowest operation at each individual size. The model should not be extrapolated outside the tested range. This is a dataset-specific descriptive fit and does not prove asymptotic growth. Distinct groups saturate near 4,000, so update cost need not grow monotonically with n.", "",
               "Memory is `deep_sizeof(database)` before timing: `sys.getsizeof` sums reachable lists, dictionaries, sets, tuples, heap entries, student objects, strings, integers, and fractions once each. Immutable strings shared with the source objects are included because the database references them. The separate source list, Python interpreter, allocator overhead, source CSV file, and prepared operation tape are excluded; this is not process RSS.", "",
               "![Slowest operation and fit](slowest_regression.svg)", "",
               "![Mixed workload throughput](throughput.svg)", "",

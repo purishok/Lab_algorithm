@@ -22,13 +22,31 @@ def operation_tape(source: list[Student], seed: int) -> list[tuple[int, str, str
     rng = random.Random(seed)
     emails = [s.m_email for s in source]
     groups = sorted({s.m_group for s in source})
+    if len(groups) < 2:
+        raise ValueError("A group-change workload requires at least two source groups")
+    current = {s.m_email: s.m_group for s in source}
+    undo = []
     tape = []
-    for _ in range(100):
-        block = []
-        for kind, count in ((1, 50), (2, 100), (3, 100)):
-            block.extend((kind, rng.choice(emails), rng.choice(groups)) for _ in range(count))
-        rng.shuffle(block)
-        tape.extend(block)
+    for block_number in range(100):
+        kinds = [1] * 50 + [2] * 100 + [3] * 100
+        rng.shuffle(kinds)
+        for kind in kinds:
+            email = group = ""
+            if kind == 2:
+                if block_number < 50:
+                    email = rng.choice(emails)
+                    old_group = current[email]
+                    group = rng.choice(groups)
+                    while group == old_group:
+                        group = rng.choice(groups)
+                    undo.append((email, old_group))
+                else:
+                    email, group = undo.pop()
+                current[email] = group
+            tape.append((kind, email, group))
+    # Reverse moves restore the initial state, so every cyclic replay still
+    # performs real changes. All generation remains outside the timed region.
+    assert current == {s.m_email: s.m_group for s in source}
     return tape
 
 
