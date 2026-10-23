@@ -1,4 +1,4 @@
-"""V4 student database designs and S5 group sorting (Python standard library only)."""
+"""Структури бази студентів V4 і сортування S5 за групою (лише стандартна бібліотека Python)."""
 
 from __future__ import annotations
 
@@ -40,14 +40,14 @@ def read_students(path: str | Path, limit: int = 100_000) -> list[Student]:
     with open(path, newline="", encoding="utf-8") as stream:
         reader = csv.DictReader(stream)
         if tuple(reader.fieldnames or ()) != FIELD_NAMES:
-            raise ValueError("Unexpected CSV header")
+            raise ValueError("Неочікуваний заголовок CSV")
         for row in reader:
             if len(students) == limit:
                 break
             rating_text = row["m_rating"]
             whole, dot, decimal = rating_text.partition(".")
             if len(decimal) > 2 or (dot and not decimal):
-                raise ValueError(f"Rating must have at most two decimal places: {rating_text}")
+                raise ValueError(f"Рейтинг має містити не більше двох десяткових знаків: {rating_text}")
             cents = int(whole) * 100 + int(decimal.ljust(2, "0") or "0")
             students.append(Student(
                 row["m_name"], row["m_surname"], row["m_email"],
@@ -86,7 +86,7 @@ def _best_average(groups: dict[str, tuple[int, int]]) -> tuple[str, ...]:
 
 
 class VectorScan:
-    """Approach A: only a student list; every operation scans rows."""
+    """Реалізація А: список студентів; кожна операція переглядає записи."""
 
     def __init__(self, source: list[Student]):
         self.students = [s.copy() for s in source]
@@ -116,13 +116,13 @@ class VectorScan:
 
 
 class AggregateMap:
-    """Approach B: email lookup and group aggregates; maximum queries scan groups."""
+    """Реалізація Б: пошук за поштою та агрегати; запити максимуму переглядають групи."""
 
     def __init__(self, source: list[Student]):
         self.students = [s.copy() for s in source]
         self.by_email = {s.m_email: s for s in self.students}
         if len(self.by_email) != len(self.students):
-            raise ValueError("Duplicate email")
+            raise ValueError("Повторна адреса електронної пошти")
         self.groups: dict[str, tuple[int, int]] = {}
         for s in self.students:
             count, total = self.groups.get(s.m_group, (0, 0))
@@ -161,7 +161,7 @@ class AggregateMap:
 
 
 class RankedIndex(AggregateMap):
-    """Approach C: hash aggregates plus bounded lazy max heaps and tie sets."""
+    """Реалізація В: хешовані агрегати, обмежені купи максимумів і множини рівних максимумів."""
 
     def __init__(self, source: list[Student]):
         super().__init__(source)
@@ -204,7 +204,7 @@ class RankedIndex(AggregateMap):
         self._add(self.average_members, self.average_heap, Fraction(total, count), group)
 
     def _compact(self) -> None:
-        # Rebuilding keeps lazy stale entries bounded after long update runs.
+        # Перебудова обмежує кількість застарілих записів після тривалих оновлень.
         if len(self.count_heap) > 4 * len(self.count_members) + 1024:
             self.count_heap = [-key for key in self.count_members]
             heapq.heapify(self.count_heap)
@@ -264,7 +264,7 @@ def standard_group_sort(students: list[Student]) -> list[Student]:
 
 
 def radix_group_sort(students: list[Student]) -> list[Student]:
-    """Bucket records by group, radix-sort distinct fixed-format keys, then flatten."""
+    """Розподілити записи за групами, порозрядно впорядкувати ключі й об’єднати списки."""
     buckets: dict[str, list[Student]] = {}
     for s in students:
         buckets.setdefault(s.m_group, []).append(s)
@@ -273,7 +273,7 @@ def radix_group_sort(students: list[Student]) -> list[Student]:
         if (len(group) != 6 or group[3] != "-" or
                 any(not "A" <= character <= "Z" for character in group[:3]) or
                 any(not "0" <= character <= "9" for character in group[4:])):
-            raise ValueError(f"Invalid S5 group: {group}")
+            raise ValueError(f"Неправильний формат групи S5: {group}")
     for position in (5, 4, 2, 1, 0):
         counts = [0] * 256
         for group in order:
@@ -294,7 +294,7 @@ def radix_group_sort(students: list[Student]) -> list[Student]:
 
 
 def deep_sizeof(root: object) -> int:
-    """Estimate live Python object size reachable from a database, once per object."""
+    """Оцінити розміри досяжних об’єктів Python, враховуючи кожний один раз."""
     seen: set[int] = set()
 
     def visit(obj: object) -> int:

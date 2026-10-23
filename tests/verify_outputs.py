@@ -1,4 +1,4 @@
-"""Independent checks for generated CSV outputs and benchmark completeness."""
+"""Незалежна перевірка згенерованих CSV та повноти вимірювань."""
 
 import csv
 from collections import Counter
@@ -46,7 +46,7 @@ def main():
     sorting = read(Path("results/s5_benchmark.csv"))
     assert len(sorting) == 100
     assert Counter((int(row["n"]), row["method"]) for row in sorting) == Counter({(n, method): 5 for n in sizes for method in ("standard", "radix")})
-    print("Sorted outputs preserve every field; all benchmark runs are present")
+    print("Відсортовані результати зберігають усі поля; усі запуски вимірювань наявні")
 
 
 if __name__ == "__main__":
