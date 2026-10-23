@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Локальні архіви для здачі роботи
+/Stepaniuk_Lab1_V4_S5.zip
+/Stepaniuk_Lab1_V4_S5_UA.zip
