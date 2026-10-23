@@ -1,28 +1,36 @@
-# Homework 1: sorting and data structures
+# Лабораторна робота № 1: структури даних і сортування
 
-Assigned student: **Михайло Степанюк**, ПСА25/Б-1. Spreadsheet row 90 assigns Task I **V4**, operation ratio **50:100:100**, and Task II **S5** (ascending `m_group`). The teacher confirmed Python and full AI assistance are allowed, despite the narrower wording in the supplied PDF.
+**Студент:** Михайло Степанюк, ПСА25/Б-1. Рядок 90 таблиці `HW1_variants_2026.xlsx` визначає завдання I **V4**, співвідношення операцій **50:100:100** і завдання II **S5** — сортування за зростанням `m_group`. За попередньою домовленістю з викладачем дозволено Python і допомогу ШІ.
 
-This repository uses **Python 3.10+ and only the standard library**. The implementations are in [`src/lab.py`](src/lab.py); benchmark and demo commands are in [`src/benchmark.py`](src/benchmark.py). No C++ source or build step is required.
+Використано **Python 3.10+ і лише стандартну бібліотеку**. Реалізації розташовані в [`src/lab.py`](src/lab.py), вимірювання та демонстрація — у [`src/benchmark.py`](src/benchmark.py). Збирання C++ не потрібне.
 
-## Task I: three V4 designs
+Повний український звіт із таблицями, графіками, поясненням алгоритмів, регресією, оцінкою пам’яті та висновками: **[results/REPORT.md](results/REPORT.md)**.
 
-| Design | Containers | Maximum queries | Group change by email |
+## Завдання I: три реалізації V4
+
+Операції: 1 — знайти групи з найбільшою кількістю студентів; 2 — змінити групу за поштою; 3 — знайти групи з найбільшим середнім рейтингом.
+
+| Реалізація | Структури даних | Запити максимуму | Зміна групи |
 |---|---|---|---|
-| `VectorScan` | Student list; aggregate map rebuilt for each query | O(n + g) | O(n) |
-| `AggregateMap` | Email dictionary and group aggregate dictionary | O(g) | Expected O(1) |
-| `RankedIndex` | Email/group dictionaries, tie sets, bounded max heaps | O(k) amortized for k winning groups | Expected O(log g) amortized |
+| `VectorScan` | Список студентів, тимчасові агрегати груп | O(n + g) | O(n) |
+| `AggregateMap` | Словник пошти й агрегатів груп | O(g) | Очікувано O(1) |
+| `RankedIndex` | Словники, множини рівних максимумів, обмежені купи | Амортизовано O(k), обслуговування куп віднесено до оновлень | Очікувано амортизовано O(log g) для структурних операцій |
 
-`RankedIndex` won the 10-second comparison on 100,000 students. Its heaps can contain stale ranking keys after updates; a periodic heap rebuild bounds their size. A result with many tied groups takes time proportional to the number returned. Integer cents and exact fractions keep average ties correct.
+Тут n — кількість студентів, g — кількість груп, k — кількість груп у відповіді. Вартість нормалізації точних дробів додатково пояснено у звіті.
 
-The winner was measured for **ten sizes from 100 to 100,000, five 10-second runs per size**. The 50:100:100 operation tape is randomized in blocks, prepared before timing, and uses existing emails and destination groups. Every update changes the group: random moves in the first half are undone in reverse order in the second half, with randomly interleaved queries. The complete tape restores the initial state, so repeated cycles also contain only real changes. This deliberately reversible workload is used identically for all three approaches. The report includes operation counts, individual mean operation times, standard deviations, a Python object-memory estimate, regression, and graphs.
+`RankedIndex` виграв 10-секундне порівняння на 100 000 студентів. Періодична перебудова куп обмежує кількість застарілих ключів. Рейтинги в сотих і точні дроби забезпечують коректне порівняння середніх.
 
-## Task II: S5 sorting
+Переможця досліджено на **десяти обсягах від 100 до 100 000 записів, п’ять запусків по 10 секунд на кожному**. Послідовність операцій готується до вимірювання та перемішується блоками зі співвідношенням 50:100:100. Випадкові перенесення першої половини скасовуються у зворотному порядку в другій; між ними виконуються запити. Повний цикл відновлює базу, а кожне перенесення справді змінює групу. Усі три реалізації отримують однакове навантаження.
 
-The standard method uses Python's `sorted(..., key=m_group)`. The custom method groups records in buckets, radix-sorts the distinct fixed-format `AAA-00` group keys using five stable counting passes, then concatenates buckets. Both write complete sorted CSVs: `results/s5_standard.csv` and `results/s5_radix.csv`. Timings at ten sizes have five repetitions per method. CSV writing is outside sort timing; bucket and radix helper structures are inside it.
+## Завдання II: сортування S5
 
-## Run and verify
+Стандартний метод використовує `sorted` із ключем групи. Власний метод розподіляє записи за групами, сортує різні ключі формату `AAA-00` п’ятьма стабільними проходами порозрядного сортування та об’єднує списки.
 
-From the repository root:
+Повні результати: `results/s5_standard.csv` та `results/s5_radix.csv`. Для десяти обсягів виконано по п’ять повторень кожного методу. Час охоплює допоміжні структури, але не запис CSV.
+
+## Запуск і перевірка
+
+З кореня проєкту:
 
 ```sh
 python3 -m unittest discover -s tests -p 'test_lab.py' -v
@@ -30,7 +38,9 @@ python3 tests/verify_outputs.py
 python3 -m src.benchmark demo
 ```
 
-The demo accepts `count`, `move EMAIL GROUP`, `average`, and `quit`. To reproduce all measurements and generated files:
+Демонстраційні команди: `count` — найбільші групи, `move EMAIL GROUP` — перенесення за поштою, `average` — максимальний середній рейтинг, `quit` — вихід. Замість `EMAIL` та `GROUP` потрібно підставити дані студента й групи.
+
+Для відтворення вимірювань:
 
 ```sh
 python3 -m src.benchmark compare
@@ -40,12 +50,16 @@ python3 analyze.py
 python3 tests/verify_outputs.py
 ```
 
-The comparison takes about 30 seconds. The winner experiment takes about 500 seconds. `results/REPORT.md` contains the tables, plots, regression function, method details, and defense notes. Raw measurements are in the three benchmark CSVs.
+Порівняння триває близько 30 секунд; дослідження переможця — близько 500 секунд. Первинні вимірювання збережено у трьох CSV із результатами експериментів.
 
-## Defense and limitations
+**Увага:** незмінений `analyze.py` генерує англійський звіт і графіки, перезаписуючи українську версію. Перед запуском збережіть її копію. Python-файли не перекладалися та не редагувалися.
 
-The indexed design suits a workload with 60% maximum queries. Updates maintain group counts, exact rating sums, and the two rankings. Tests compare all three designs to an independent calculation after random group moves, including ties and disappearing groups. For adversarial input, Python dictionaries have no deterministic worst-case lookup guarantee; use a balanced search tree for email and group indexes, constrain inputs, and paginate a huge tied result. The memory number counts reachable Python objects with `sys.getsizeof` once each; it excludes interpreter and allocator overhead, so it is not process RSS. The regression describes these ten dataset prefixes and is not a proof of asymptotic growth.
+## Перевірки та обмеження
 
-## Submission
+Сім тестів порівнюють реалізації з незалежним обчисленням після випадкових перенесень, перевіряють рівні максимуми, порожні й зниклі групи, обмеження куп, сортування та читання CSV. Окремий сценарій перевіряє збереження всіх полів і повноту вимірювань.
 
-Run the tests, read `results/REPORT.md`, and be ready to explain all three designs, the timing boundaries, group updates, regression, radix passes, and DoS tradeoffs. Submit the GitHub repository URL and any report/archive your course portal requires. The PDF does not specify the portal or upload format, so confirm that detail with the teacher. Disclose AI assistance according to the teacher's permission.
+Словники мають очікувано швидкий доступ, але не детерміновану гарантію найгіршого часу. Для недовірених даних можна застосувати збалансовані дерева, перевірку розмірів і форматів, поділ великих відповідей на сторінки. Оцінка пам’яті через `sys.getsizeof` не є повним споживанням пам’яті процесом. Регресія описує досліджені дані та не доводить асимптотичну складність.
+
+## Здача роботи
+
+ZIP містить два окремі каталоги: `report/` зі звітом і графіками та `files/` із кодом, вхідними даними, тестами й результатами. Команди з цього опису в архіві виконуються з `files/`. Архів призначений для здачі окремим файлом; на GitHub у межах поточного оновлення публікується лише змінений звіт.

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
 <rect width="100%" height="100%" fill="white"/>
-<text x="450.0" y="30" text-anchor="middle" font-size="20" font-family="sans-serif">Python V4 mixed workload throughput</text>
+<text x="450.0" y="30" text-anchor="middle" font-size="20" font-family="sans-serif">V4: продуктивність змішаного навантаження</text>
 <line x1="85" y1="445.0" x2="865" y2="445.0" stroke="#e6e9ed"/>
 <text x="73" y="450.0" text-anchor="end" font-size="12" font-family="sans-serif">0.0</text>
 <line x1="85" y1="367.0" x2="865" y2="367.0" stroke="#e6e9ed"/>
@@ -17,8 +17,8 @@
 <text x="345.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">1,000</text>
 <text x="605.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">10,000</text>
 <text x="865.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">100,000</text>
-<text x="450.0" y="502" text-anchor="middle" font-size="14" font-family="sans-serif">Students (log scale)</text>
-<text transform="translate(20 260.0) rotate(-90)" text-anchor="middle" font-size="14" font-family="sans-serif">Operations in 10 seconds</text>
+<text x="450.0" y="502" text-anchor="middle" font-size="14" font-family="sans-serif">Студентів (логарифмічна шкала)</text>
+<text transform="translate(20 260.0) rotate(-90)" text-anchor="middle" font-size="14" font-family="sans-serif">Операцій за 10 секунд</text>
 <polyline points="85.0,104.1 188.5,113.0 266.7,117.7 345.0,120.7 448.5,137.3 526.7,153.8 605.0,219.3 708.5,241.5 786.7,210.6 865.0,203.5" fill="none" stroke="#16885b" stroke-width="2.5"/>
 <line x1="85.0" y1="111.4" x2="85.0" y2="96.8" stroke="#16885b"/>
 <line x1="81.0" y1="111.4" x2="89.0" y2="111.4" stroke="#16885b"/>
@@ -61,5 +61,5 @@
 <line x1="861.0" y1="196.7" x2="869.0" y2="196.7" stroke="#16885b"/>
 <circle cx="865.0" cy="203.5" r="3" fill="#16885b"/>
 <rect x="85" y="478" width="16" height="4" fill="#16885b"/>
-<text x="107" y="485" font-size="12" font-family="sans-serif">Mean ± SD</text>
+<text x="107" y="485" font-size="12" font-family="sans-serif">Середнє ± СВ</text>
 </svg>

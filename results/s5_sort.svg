@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
 <rect width="100%" height="100%" fill="white"/>
-<text x="450.0" y="30" text-anchor="middle" font-size="20" font-family="sans-serif">Python S5 sorting by group</text>
+<text x="450.0" y="30" text-anchor="middle" font-size="20" font-family="sans-serif">S5: сортування за групою</text>
 <line x1="85" y1="445.0" x2="865" y2="445.0" stroke="#e6e9ed"/>
 <text x="73" y="450.0" text-anchor="end" font-size="12" font-family="sans-serif">0.0</text>
 <line x1="85" y1="367.0" x2="865" y2="367.0" stroke="#e6e9ed"/>
@@ -17,8 +17,8 @@
 <text x="345.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">1,000</text>
 <text x="605.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">10,000</text>
 <text x="865.0" y="470" text-anchor="middle" font-size="12" font-family="sans-serif">100,000</text>
-<text x="450.0" y="502" text-anchor="middle" font-size="14" font-family="sans-serif">Students (log scale)</text>
-<text transform="translate(20 260.0) rotate(-90)" text-anchor="middle" font-size="14" font-family="sans-serif">Sort time (ms)</text>
+<text x="450.0" y="502" text-anchor="middle" font-size="14" font-family="sans-serif">Студентів (логарифмічна шкала)</text>
+<text transform="translate(20 260.0) rotate(-90)" text-anchor="middle" font-size="14" font-family="sans-serif">Час сортування (мс)</text>
 <polyline points="85.0,444.8 188.5,444.5 266.7,444.0 345.0,442.8 448.5,439.1 526.7,432.6 605.0,417.7 708.5,368.2 786.7,280.2 865.0,99.5" fill="none" stroke="#16609e" stroke-width="2.5"/>
 <line x1="85.0" y1="444.9" x2="85.0" y2="444.8" stroke="#16609e"/>
 <line x1="81.0" y1="444.9" x2="89.0" y2="444.9" stroke="#16609e"/>
@@ -61,7 +61,7 @@
 <line x1="861.0" y1="96.8" x2="869.0" y2="96.8" stroke="#16609e"/>
 <circle cx="865.0" cy="99.5" r="3" fill="#16609e"/>
 <rect x="85" y="478" width="16" height="4" fill="#16609e"/>
-<text x="107" y="485" font-size="12" font-family="sans-serif">Standard mean ± SD</text>
+<text x="107" y="485" font-size="12" font-family="sans-serif">Стандартне: середнє ± СВ</text>
 <polyline points="85.0,442.5 188.5,439.8 266.7,434.7 345.0,426.5 448.5,405.9 526.7,383.8 605.0,360.1 708.5,331.1 786.7,297.1 865.0,211.3" fill="none" stroke="#e05a38" stroke-width="2.5"/>
 <line x1="85.0" y1="442.7" x2="85.0" y2="442.3" stroke="#e05a38"/>
 <line x1="81.0" y1="442.7" x2="89.0" y2="442.7" stroke="#e05a38"/>
@@ -104,5 +104,5 @@
 <line x1="861.0" y1="203.6" x2="869.0" y2="203.6" stroke="#e05a38"/>
 <circle cx="865.0" cy="211.3" r="3" fill="#e05a38"/>
 <rect x="300" y="478" width="16" height="4" fill="#e05a38"/>
-<text x="322" y="485" font-size="12" font-family="sans-serif">Radix mean ± SD</text>
+<text x="322" y="485" font-size="12" font-family="sans-serif">Порозрядне: середнє ± СВ</text>
 </svg>
